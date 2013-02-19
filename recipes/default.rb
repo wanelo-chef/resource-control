@@ -16,3 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+resource_control_project "testproject" do
+  comment "test project"
+  process_limits "max-cpu-time" => [
+          { "value" => 7200, "signal" => "TERM" },
+          { "value" => 7260, "signal" => "KILL" }
+      ]
+end
