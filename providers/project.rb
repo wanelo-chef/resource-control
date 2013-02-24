@@ -19,7 +19,7 @@
 
 def load_current_resource
   @current_project = Chef::Resource::ResourceControlProject.new(new_resource.name)
-  @current_project.load
+  @current_project.load_checksum
 end
 
 action :create do
@@ -29,6 +29,10 @@ action :create do
   set_limits new_resource.project_limits, 'project'
   set_limits new_resource.task_limits, 'task'
   set_limits new_resource.process_limits, 'process'
+
+  new_resource.updated_by_last_action(@current_project.checksum != new_resource.checksum)
+
+  new_resource.save_checksum
 end
 
 private
@@ -47,6 +51,7 @@ def create_or_update_project
   basecmd = project_exists? ? 'projmod' : 'projadd'
   cmd = Mixlib::ShellOut.new("#{basecmd} -c \"#{new_resource.comment}\" #{project}")
   cmd.run_command
+  cmd.error!
 end
 
 def project_exists?

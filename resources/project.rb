@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'digest/md5'
+
 actions :create
 
 attribute :name, :kind_of => String, :name_attribute => true, :required => true
@@ -30,16 +32,22 @@ def initialize(*args)
   @action = :create
 end
 
-def load
-  cmd = Mixlib::ShellOut.new("projects -l #{self.name}")
-  cmd.run_command
-  begin
-    cmd.error!
-
-    project = cmd.stdout
-    self.comment = project.match(/comment: "([^"]+)"/)[1] rescue nil
-    attrs = project.match(/attribs:/)[1] rescue nil
-  rescue Exception
-    false
+def save_checksum
+  File.open(checksum_file, "w") do |f|
+    f.puts self.checksum
   end
 end
+
+def load_checksum
+  @checksum ||= File.read(checksum_file) rescue ''
+end
+
+def checksum
+  @checksum ||= Digest::MD5.hexdigest("#{self.comment}#{self.project_limits.to_s}#{self.task_limits.to_s}#{self.process_limits.to_s}")
+end
+
+def checksum_file
+  "#{Chef::Config[:file_cache_path]}/checksums/solaris-project--#{self.name}"
+end
+
+
