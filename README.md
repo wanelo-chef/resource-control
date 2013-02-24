@@ -25,6 +25,13 @@ fire from resource blocks even if the resource does not change.
 
 ## Project LWRP
 
+Solaris projects are useful in a number of ways. Processes for a service can be grouped together
+to better report on aggregate resource utilization. Limits can also be set on numerous metrics,
+or altered from system defaults.
+
+Projects are the only way that certain settings can be relaxed for process groups, for instance
+max file descriptors or shared memory limits.
+
 ### Attributes
 
 * project_limits
@@ -49,7 +56,10 @@ resource_control_project "postgres" do
   process_limits "max-cpu-time" => [
                      {"value" => 3600, "signal" => "TERM"},
                      {"value" => 3660, "deny" => true}
-                 ]
+                 ],
+                 "max-file-descriptor" => {
+                     "value" => 32768, "deny" => true
+                 }
   action :create
 end
 ```
