@@ -8,7 +8,7 @@ limits using the Resource Control Facility.
 
 ## Provides
 
-Providers:
+LWRPs:
 * project
 
 Recipes:
@@ -23,23 +23,21 @@ Due to differences in hash behaviors, it is recommended that the LWRPs in this c
 only be used with Ruby 1.9 or greater. In earlier versions of Ruby, notifications may
 fire from resource blocks even if the resource does not change.
 
-## Providers
+## Project LWRP
 
-### Project
-
-#### Attributes
+### Attributes
 
 * project_limits
 * task_limits
 * process_limits
 * comment
 
-#### Actions
+### Actions
 
 * `:create` - default
 * `:nothing`
 
-#### Overview
+### Overview
 
 ```ruby
 resource_control_project "postgres" do
