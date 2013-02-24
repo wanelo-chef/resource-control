@@ -38,6 +38,7 @@ max file descriptors or shared memory limits.
 * task_limits
 * process_limits
 * comment
+* users
 
 ### Actions
 
@@ -49,6 +50,7 @@ max file descriptors or shared memory limits.
 ```ruby
 resource_control_project "postgres" do
   comment "PostgreSQL 9.2"
+  users "postgres"
 
   project_limits "max-shm-memory" => 12000000,
                  "max-lwps"       => 6
@@ -66,6 +68,13 @@ end
 
 See the documentation of resource controls in the References section below for available
 resource limits.
+
+#### Users
+
+Tasks started as a superuser can be added to any project, but if a task or process is started
+by a non-privileged user, that user should be added to the project.
+
+The `users` attribute can be set as a String or an Array.
 
 #### Local actions and signalling
 

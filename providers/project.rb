@@ -68,9 +68,17 @@ end
 
 # create a new project or update its comment
 def create_or_update_project
-  basecmd = project_exists? ? 'projmod' : 'projadd'
-  Chef::Log.debug("creating project : #{project}")
-  cmd = Mixlib::ShellOut.new("#{basecmd} -c \"#{new_resource.comment}\" #{project}")
+  Chef::Log.debug("creating or updating project : #{project}, users: #{new_resource.users}, comment: #{new_resource.comment}")
+
+  command = []
+  command << (project_exists? ? 'projmod' : 'projadd')
+  command << "-c \"#{new_resource.comment}\""
+  command << "-U \"#{Array(new_resource.users).join(',')}\"" if new_resource.users
+  command << project
+
+  Chef::Log.debug("executing command: #{command.join(' ')}")
+
+  cmd = Mixlib::ShellOut.new(command.join(' '))
   cmd.run_command
   cmd.error!
 end
@@ -79,14 +87,17 @@ end
 def set_limits
   unless @limits.keys.empty?
     Chef::Log.debug("setting limits for project : #{project} : #{@limits.inspect}")
-    projmod = %w[projmod]
-    @limits.each_pair do |control, limits|
-      projmod << '-K'
-      projmod << "\"#{control}=#{limits}\""
-    end
-    projmod << project
 
-    cmd = Mixlib::ShellOut.new(projmod.join(' '))
+    command = %w[projmod]
+    @limits.each_pair do |control, limits|
+      command << '-K'
+      command << "\"#{control}=#{limits}\""
+    end
+    command << project
+
+    Chef::Log.debug("executing command: #{command.join(' ')}")
+
+    cmd = Mixlib::ShellOut.new(command.join(' '))
     cmd.run_command
     cmd.error!
   end

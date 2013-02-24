@@ -24,12 +24,16 @@ default_action :create
 
 attribute :name, :kind_of => String, :name_attribute => true, :required => true
 attribute :comment, :kind_of => [String, NilClass], :default => nil
+attribute :users, :kind_of => [String, Array, NilClass], :default => nil
 
 attribute :project_limits, :kind_of => [Hash, NilClass], :default => nil
 attribute :task_limits, :kind_of => [Hash, NilClass], :default => nil
 attribute :process_limits, :kind_of => [Hash, NilClass], :default => nil
 
+
+
 # Save a checksum out to a file, for future chef runs
+#
 def save_checksum
   Chef::Log.debug("Saving checksum for project #{self.name}: #{self.checksum}")
   ::FileUtils.mkdir_p(Chef::Config.checksum_path)
@@ -39,6 +43,7 @@ end
 
 # Load current resource from checksum file and projects database.
 # This should only ever be called on @current_resource, never on new_resource.
+#
 def load
   @checksum ||= ::File.exists?(checksum_file) ? ::File.read(checksum_file) : ''
   Chef::Log.debug("Loaded checksum for project #{self.name}: #{@checksum}")
@@ -49,7 +54,7 @@ def load
 end
 
 def checksum
-  @checksum ||= Digest::MD5.hexdigest("#{self.comment}#{self.project_limits.to_s}#{self.task_limits.to_s}#{self.process_limits.to_s}")
+  @checksum ||= Digest::MD5.hexdigest("#{self.comment}#{self.users.inspect}#{self.project_limits.to_s}#{self.task_limits.to_s}#{self.process_limits.to_s}")
 end
 
 def checksum_file
@@ -58,6 +63,7 @@ end
 
 # Check whether @current_resource includes a limit key.
 # Do not call this on new_resources.
+#
 def includes?(key)
   @current_attribs.include?(key)
 end
