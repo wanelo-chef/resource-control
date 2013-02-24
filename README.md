@@ -19,6 +19,10 @@ Recipes:
 * Solaris or Illumos-based operating system
 * Tested on SmartOS
 
+Due to differences in hash behaviors, it is recommended that the LWRPs in this cookbook
+only be used with Ruby 1.9 or greater. In earlier versions of Ruby, notifications may
+fire from resource blocks even if the resource does not change.
+
 ## Providers
 
 ### Project

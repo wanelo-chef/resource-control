@@ -16,9 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'fileutils'
 require 'digest/md5'
 
 actions :create
+default_action :create
 
 attribute :name, :kind_of => String, :name_attribute => true, :required => true
 attribute :comment, :kind_of => [String, NilClass], :default => nil
@@ -27,19 +29,23 @@ attribute :project_limits, :kind_of => [Hash, NilClass], :default => nil
 attribute :task_limits, :kind_of => [Hash, NilClass], :default => nil
 attribute :process_limits, :kind_of => [Hash, NilClass], :default => nil
 
-def initialize(*args)
-  super(*args)
-  @action = :create
-end
-
+# Save a checksum out to a file, for future chef runs
 def save_checksum
-  File.open(checksum_file, "w") do |f|
-    f.puts self.checksum
-  end
+  Chef::Log.debug("Saving checksum for project #{self.name}: #{self.checksum}")
+  ::FileUtils.mkdir_p(Chef::Config.checksum_path)
+  f = ::File.new(checksum_file, 'w')
+  f.write self.checksum
 end
 
-def load_checksum
-  @checksum ||= File.read(checksum_file) rescue ''
+# Load current resource from checksum file and projects database.
+# This should only ever be called on @current_resource, never on new_resource.
+def load
+  @checksum ||= ::File.exists?(checksum_file) ? ::File.read(checksum_file) : ''
+  Chef::Log.debug("Loaded checksum for project #{self.name}: #{@checksum}")
+
+  project_from_db = Chef::ShellOut.new("projects -l #{self.name}")
+  project_from_db.run_command
+  @current_attribs = project_from_db.stdout
 end
 
 def checksum
@@ -47,7 +53,11 @@ def checksum
 end
 
 def checksum_file
-  "#{Chef::Config[:file_cache_path]}/checksums/solaris-project--#{self.name}"
+  "#{Chef::Config.checksum_path}/solaris-project--#{self.name}"
 end
 
-
+# Check whether @current_resource includes a limit key.
+# Do not call this on new_resources.
+def includes?(key)
+  @current_attribs.include?(key)
+end

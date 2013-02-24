@@ -19,39 +19,30 @@
 
 def load_current_resource
   @current_project = Chef::Resource::ResourceControlProject.new(new_resource.name)
-  @current_project.load_checksum
+  @current_project.load
+  @limits ||= {}
 end
 
 action :create do
   validate!
 
   create_or_update_project
-  set_limits new_resource.project_limits, 'project'
-  set_limits new_resource.task_limits, 'task'
-  set_limits new_resource.process_limits, 'process'
+  configure_limits_for 'project', new_resource.project_limits
+  configure_limits_for 'task', new_resource.task_limits
+  configure_limits_for 'process', new_resource.process_limits
+  clear_limits
+  set_limits
 
-  new_resource.updated_by_last_action(@current_project.checksum != new_resource.checksum)
+  new_resource.updated_by_last_action(project_changed?)
 
   new_resource.save_checksum
 end
 
+
 private
 
 def project
-  new_resource.name
-end
-
-def validate!
-  raise ArgumentError.new('name may not include spaces') if new_resource.name.match(/\s/)
-  raise ArgumentError.new('comment may not include colons or newlines') if new_resource.comment &&
-      new_resource.comment.match(/(:|\n)/)
-end
-
-def create_or_update_project
-  basecmd = project_exists? ? 'projmod' : 'projadd'
-  cmd = Mixlib::ShellOut.new("#{basecmd} -c \"#{new_resource.comment}\" #{project}")
-  cmd.run_command
-  cmd.error!
+  @project ||= new_resource.name
 end
 
 def project_exists?
@@ -65,19 +56,47 @@ def project_exists?
   end
 end
 
-def set_limits(limit_hash, type)
-  return unless limit_hash
-  limit_hash.each_pair do |limit, values|
-    control = "#{type}.#{limit}"
+def project_changed?
+  @current_project.checksum != new_resource.checksum
+end
 
-    set_limit(control, values)
+def validate!
+  raise ArgumentError.new('name may not include spaces') if new_resource.name.match(/\s/)
+  raise ArgumentError.new('comment may not include colons or newlines') if new_resource.comment &&
+      new_resource.comment.match(/(:|\n)/)
+end
+
+# create a new project or update its comment
+def create_or_update_project
+  basecmd = project_exists? ? 'projmod' : 'projadd'
+  Chef::Log.debug("creating project : #{project}")
+  cmd = Mixlib::ShellOut.new("#{basecmd} -c \"#{new_resource.comment}\" #{project}")
+  cmd.run_command
+  cmd.error!
+end
+
+# write out current list of limits to projects database
+def set_limits
+  unless @limits.keys.empty?
+    Chef::Log.debug("setting limits for project : #{project} : #{@limits.inspect}")
+    projmod = %w[projmod]
+    @limits.each_pair do |control, limits|
+      projmod << '-K'
+      projmod << "\"#{control}=#{limits}\""
+    end
+    projmod << project
+
+    cmd = Mixlib::ShellOut.new(projmod.join(' '))
+    cmd.run_command
+    cmd.error!
   end
 end
 
-def set_limit(control, values)
-  cmd = Mixlib::ShellOut.new("projmod -a -K \"#{control}=#{values_to_limits(values)}\" #{project}")
-  cmd.run_command
-  cmd.error!
+def configure_limits_for(type, limit_hash)
+  return unless limit_hash
+  limit_hash.each_pair do |limit, values|
+    @limits["#{type}.#{limit}"] = values_to_limits(values)
+  end
 end
 
 def values_to_limits(values)
@@ -101,4 +120,25 @@ def value_to_limit(value)
     v << 'none'
   end
   "(#{v.join(',')})"
+end
+
+# remove all currently set limits, in case we are updating an existing project with empty values
+def clear_limits
+  if @limits.keys.empty? && project_changed?
+    Chef::Log.debug("clearing all limits for project : #{project}")
+    limits = %w[ project.cpu-cap            project.cpu-shares          project.max-crypto-memory
+                 project.max-locked-memory  project.max-msg-ids         project.max-port-ids
+                 project.max-processes      project.max-sem-ids         project.max-shm-ids
+                 project.max-shm-memory     project.max-lwps            project.max-tasks
+                 project.max-contracts      task.max-cpu-time           task.max-lwps
+                 task.max-processes         process.max-cpu-time        process.max-file-descriptor
+                 process.max-file-size      process.max-core-size       process.max-data-size
+                 process.max-stack-size     process.max-address-space   process.max-port-events
+                 process.max-sem-nsems      process.max-sem-ops         process.max-msg-qbytes
+                 process.max-msg-messages ].select { |k| @current_project.includes?(k) }.map { |l| "-K \"#{l}\"" }.join(' ')
+    return if limits.empty?
+    cmd = Mixlib::ShellOut.new("projmod -r #{limits} #{project}")
+    cmd.run_command
+    cmd.error!
+  end
 end
