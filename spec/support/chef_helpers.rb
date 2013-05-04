@@ -21,6 +21,7 @@ module ChefHelpers
       f.puts recipe_code
     end
     runner.converge 'fixtures::_temp'
+    recipe_code
   ensure
     reset_fixtures
   end

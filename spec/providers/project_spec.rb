@@ -3,6 +3,8 @@ require 'spec_helper'
 describe 'resource-control::project' do
   before do
     double_cmd('projects -l name-only')
+    double_cmd('projadd')
+    double_cmd('projmod')
   end
 
   context 'project does not exist' do
@@ -11,11 +13,21 @@ describe 'resource-control::project' do
     end
 
     it "creates a project with only name attribute" do
-      double_cmd('projadd -c "" name-only')
-      converge_recipe <<-END
-        resource_control_project 'name-only'
-      END
-      expect(history).to include('projadd -c "" name-only'.shellsplit)
+      expect {
+        converge_recipe %{
+            resource_control_project 'name-only'
+        }
+      }.to shellout('projadd -c "" name-only')
+    end
+
+    it "sets a comment" do
+      expect {
+        converge_recipe %{
+            resource_control_project 'project' do
+              comment "project comment"
+            end
+        }
+      }.to shellout('projadd -c "project comment" project')
     end
   end
 
@@ -25,11 +37,11 @@ describe 'resource-control::project' do
     end
 
     it "creates a project with only name attribute" do
-      double_cmd('projmod -c "" name-only')
-      converge_recipe <<-END
-        resource_control_project 'name-only'
-      END
-      expect(history).to include('projmod -c "" name-only'.shellsplit)
+      expect {
+        converge_recipe %{
+            resource_control_project 'name-only'
+        }
+      }.to shellout('projmod -c "" name-only')
     end
   end
 end
