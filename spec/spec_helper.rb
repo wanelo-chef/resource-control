@@ -10,11 +10,13 @@ RSpec.configure do |c|
   c.include ChefHelpers
 
   c.before :each do
+    setup_chef
     ArubaDoubles::Double.setup
   end
 
   c.after :each do
     ArubaDoubles::Double.teardown
     history.clear
+    reset_chef
   end
 end

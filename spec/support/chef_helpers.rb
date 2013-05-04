@@ -1,6 +1,15 @@
 require 'fileutils'
 
 module ChefHelpers
+  def setup_chef
+    @checksum_path = Chef::Config[:checksum_path]
+    Chef::Config[:checksum_path] = "#{File.expand_path(Dir.pwd)}/tmp/checksums"
+  end
+
+  def reset_chef
+    Chef::Config[:checksum_path] = @checksum_path
+  end
+
   def install_fixtures
     FileUtils.mkdir_p('tmp/fixtures/recipes')
     File.open('tmp/fixtures/metadata.rb', 'w') do |md|
