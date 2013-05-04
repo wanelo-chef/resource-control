@@ -10,22 +10,30 @@ describe 'resource-control::project' do
   }
 
   before do
-    Mixlib::ShellOut.should_receive(:new).with('projects -l name-only').and_return(
-      mock(run_command: true, stdout: "")
-    )
+    double_cmd('projects -l name-only')
   end
 
   context 'project does not exist' do
     before do
-      project_exists = mock(run_command: true)
-      Mixlib::ShellOut.should_receive(:new).with('grep name-only /etc/project').and_return(project_exists)
-      project_exists.stub(:error!).and_raise(RuntimeError)
+      double_cmd('grep name-only /etc/project', exit: 1)
     end
 
     it "creates a project with only name attribute" do
-      shell_mock = mock(run_command: true, error!: false)
-      Mixlib::ShellOut.should_receive(:new).with('projadd -c "" name-only').and_return(shell_mock)
+      double_cmd('projadd -c "" name-only')
       runner.converge 'fixtures::create'
+      expect(history).to include('projadd -c "" name-only'.shellsplit)
+    end
+  end
+
+  context 'project already exists' do
+    before do
+      double_cmd('grep name-only /etc/project', exit: 0)
+    end
+
+    it "creates a project with only name attribute" do
+      double_cmd('projmod -c "" name-only')
+      runner.converge 'fixtures::create'
+      expect(history).to include('projmod -c "" name-only'.shellsplit)
     end
   end
 end
