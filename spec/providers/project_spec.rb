@@ -7,6 +7,34 @@ describe 'resource-control::project' do
     double_cmd('projmod')
   end
 
+  describe 'validation' do
+    it 'does not allow spaces in name' do
+      expect {
+        converge_recipe "validate_name", %{
+          resource_control_project 'project name'
+        }
+      }.to raise_error(ArgumentError, /name may not include spaces/)
+    end
+
+    it 'does not allow colons or newlines in comments' do
+      expect {
+        converge_recipe "validate_comment", %{
+          resource_control_project 'project_name' do
+            comment "some:thing"
+          end
+        }
+      }.to raise_error(ArgumentError, /comment may not include colons or newlines/)
+
+      expect {
+        converge_recipe "validate_comment", %{
+          resource_control_project 'project_name' do
+            comment "some\nthing"
+          end
+        }
+      }.to raise_error(ArgumentError, /comment may not include colons or newlines/)
+    end
+  end
+
   context 'project does not exist' do
     before { double_cmd('grep project_name /etc/project', exit: 1) }
 
