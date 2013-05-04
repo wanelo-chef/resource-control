@@ -48,7 +48,7 @@ def load
   @checksum ||= ::File.exists?(checksum_file) ? ::File.read(checksum_file) : ''
   Chef::Log.debug("Loaded checksum for project #{self.name}: #{@checksum}")
 
-  project_from_db = Chef::ShellOut.new("projects -l #{self.name}")
+  project_from_db = Mixlib::ShellOut.new("projects -l #{self.name}")
   project_from_db.run_command
   @current_attribs = project_from_db.stdout
 end
