@@ -14,13 +14,13 @@ module ChefHelpers
     FileUtils.rm_rf('tmp')
   end
 
-  def converge_recipe recipe_code
+  def converge_recipe recipe_name, recipe_code
     install_fixtures
-    File.open('tmp/fixtures/recipes/_temp.rb', 'w+') do |f|
+    File.open("tmp/fixtures/recipes/#{recipe_name}.rb", 'w+') do |f|
       f.puts "include_recipe 'resource-control'"
       f.puts recipe_code
     end
-    runner.converge 'fixtures::_temp'
+    runner.converge "fixtures::#{recipe_name}"
     recipe_code
   ensure
     reset_fixtures
