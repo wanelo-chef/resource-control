@@ -8,6 +8,7 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f unless /_s
 RSpec.configure do |c|
   c.include ArubaDoubles
   c.include ChefHelpers
+  c.extend ProjectHelpers
 
   c.before :each do
     setup_chef
