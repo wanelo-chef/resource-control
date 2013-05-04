@@ -3,8 +3,11 @@ require 'chefspec'
 require 'aruba-doubles'
 require 'pry'
 
+Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f unless /_spec\.rb$/.match(f) }
+
 RSpec.configure do |c|
-  include ArubaDoubles
+  c.include ArubaDoubles
+  c.include ChefHelpers
 
   c.before :each do
     ArubaDoubles::Double.setup
