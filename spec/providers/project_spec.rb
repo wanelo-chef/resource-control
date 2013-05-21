@@ -175,6 +175,25 @@ describe 'resource-control::project', 'process limits' do
         }
       }.to shellout('projmod -K "process.something=(privileged,1234,signal=KILL)" project_name')
     end
+
+    it "can set privilege level" do
+      expect {
+        converge_recipe "set_project_as_hash_level", %{
+            resource_control_project 'project_name' do
+              process_limits "something" => { :value => 1234, :level => "basic" }
+            end
+        }
+      }.to shellout('projmod -K "process.something=(basic,1234,none)" project_name')
+
+      expect {
+        converge_recipe "set_project_as_hash_level_string", %{
+            resource_control_project 'project_name' do
+              process_limits "something" => { :value => 4567, 'level' => "basic" }
+            end
+        }
+      }.to shellout('projmod -K "process.something=(basic,4567,none)" project_name')
+
+    end
   end
 
   context 'with limit as an array of hashes' do

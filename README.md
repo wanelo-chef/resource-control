@@ -136,6 +136,18 @@ end
 
 #### Privilege level
 
+By default, the limits set by the project provider are set at the
+'privileged' level. In order to override this, the following syntax is
+used:
+
+```ruby
+resource_control_project "nginx" do
+  process_limits "max-file-descriptor" => {
+          "value" => 32768, "level" => "basic", "deny" => true
+      }
+end
+```
+
 By default, the limits set by the project provider can only be modified by superusers. Assuming
 that the chef run is executed by root, this should never need to be changed.
 

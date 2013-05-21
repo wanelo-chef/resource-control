@@ -116,9 +116,10 @@ def values_to_limits(values)
 end
 
 def value_to_limit(value)
-  v = %w[privileged]
+  v = []
   if value.is_a?(Hash)
     value = Mash.new(value)
+    v << (value['level'].nil? ? 'privileged' : value['level'])
     v << value['value']
     if value['deny']
       v << 'deny'
@@ -128,6 +129,7 @@ def value_to_limit(value)
       v << 'none'
     end
   else
+    v << 'privileged'
     v << value
     v << 'none'
   end
