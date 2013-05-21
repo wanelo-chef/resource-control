@@ -2,7 +2,7 @@
 source "https://rubygems.org"
 
 group :development, :test do
-  gem 'fauxhai', github: 'livinginthepast/fauxhai', branch: 'smartos'
+  gem 'fauxhai'
   gem 'chefspec'
   gem 'foodcritic'
   gem 'guard-rspec'

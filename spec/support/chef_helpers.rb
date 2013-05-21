@@ -37,7 +37,7 @@ module ChefHelpers
 
   def runner
     ChefSpec::ChefRunner.new(
-      platform: 'smartos',
+      platform: 'smartos', version: 'joyent_20130111T180733Z',
       step_into: ['resource-control_project'],
       cookbook_path: %W(#{File.expand_path(Dir.pwd)}/tmp #{File.expand_path("..", Dir.pwd)})
     )
