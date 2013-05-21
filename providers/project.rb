@@ -111,13 +111,14 @@ def configure_limits_for(type, limit_hash)
 end
 
 def values_to_limits(values)
-  values = Array(values).map { |v| value_to_limit(v) }
+  values = [values].flatten.map { |v| value_to_limit(v) }
   values.join(',')
 end
 
 def value_to_limit(value)
   v = %w[privileged]
   if value.is_a?(Hash)
+    value = Mash.new(value)
     v << value['value']
     if value['deny']
       v << 'deny'
