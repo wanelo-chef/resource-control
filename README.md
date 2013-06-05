@@ -148,8 +148,7 @@ resource_control_project "nginx" do
 end
 ```
 
-By default, the limits set by the project provider can only be modified by superusers. Assuming
-that the chef run is executed by root, this should never need to be changed.
+By default, the limits set by the project provider can only be modified by superusers.
 
 ## References
 
