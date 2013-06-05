@@ -10,4 +10,10 @@ module ProjectHelpers
       double_cmd("grep #{name} /etc/project", exit: 1)
     end
   end
+
+  def project_has_limits(limits)
+    before do
+      double_cmd('projects -l project_name', puts: limits.join(','))
+    end
+  end
 end

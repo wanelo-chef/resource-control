@@ -100,114 +100,132 @@ end
 
 describe 'resource-control::project', 'process limits' do
   before do
-    double_cmd('projects -l project_name')
     double_cmd('projadd')
     double_cmd('projmod')
   end
 
   project_exists('project_name')
 
-  context 'with limit as a value' do
-    it 'sets value with action none' do
-      expect {
-        converge_recipe "set_project_as_value", %{
+  context 'when limits are not already set' do
+    before do
+      double_cmd('projects -l project_name')
+    end
+
+    context 'with limit as a value' do
+      it 'sets value with action none' do
+        expect {
+          converge_recipe "set_project_as_value", %{
             resource_control_project 'project_name' do
               process_limits "something" => 1234
             end
-        }
-      }.to shellout('projmod -K "process.something=(privileged,1234,none)" project_name')
+          }
+        }.to shellout('projmod -K "process.something=(privileged,1234,none)" project_name')
+      end
     end
-  end
 
-  context 'with limit as a hash' do
-    it 'allows allows value to be set as a string' do
-      expect {
-        converge_recipe "set_project_as_hash_string_value", %{
+    context 'with limit as a hash' do
+      it 'allows allows value to be set as a string' do
+        expect {
+          converge_recipe "set_project_as_hash_string_value", %{
             resource_control_project 'project_name' do
               process_limits "something" => { 'value' => 1234 }
             end
-        }
-      }.to shellout('projmod -K "process.something=(privileged,1234,none)" project_name')
-    end
+          }
+        }.to shellout('projmod -K "process.something=(privileged,1234,none)" project_name')
+      end
 
-    it 'allows allows value to be set as a symbol' do
-      expect {
-        converge_recipe "set_project_as_hash_string_value", %{
+      it 'allows allows value to be set as a symbol' do
+        expect {
+          converge_recipe "set_project_as_hash_string_value", %{
             resource_control_project 'project_name' do
               process_limits "something" => { :value => 1234 }
             end
-        }
-      }.to shellout('projmod -K "process.something=(privileged,1234,none)" project_name')
-    end
+          }
+        }.to shellout('projmod -K "process.something=(privileged,1234,none)" project_name')
+      end
 
-    it 'can set deny to true' do
-      expect {
-        converge_recipe "set_project_as_hash_deny", %{
+      it 'can set deny to true' do
+        expect {
+          converge_recipe "set_project_as_hash_deny", %{
             resource_control_project 'project_name' do
               process_limits "something" => { :value => 1234, :deny => true }
             end
-        }
-      }.to shellout('projmod -K "process.something=(privileged,1234,deny)" project_name')
+          }
+        }.to shellout('projmod -K "process.something=(privileged,1234,deny)" project_name')
 
-      expect {
-        converge_recipe "set_project_as_hash_deny_string", %{
+        expect {
+          converge_recipe "set_project_as_hash_deny_string", %{
             resource_control_project 'project_name' do
               process_limits "something" => { :value => 4567, 'deny' => true }
             end
-        }
-      }.to shellout('projmod -K "process.something=(privileged,4567,deny)" project_name')
-    end
+          }
+        }.to shellout('projmod -K "process.something=(privileged,4567,deny)" project_name')
+      end
 
-    it 'can set signal action' do
-      expect {
-        converge_recipe "set_project_as_hash_none", %{
+      it 'can set signal action' do
+        expect {
+          converge_recipe "set_project_as_hash_none", %{
             resource_control_project 'project_name' do
               process_limits "something" => { :value => 1234, :signal => "TERM" }
             end
-        }
-      }.to shellout('projmod -K "process.something=(privileged,1234,signal=TERM)" project_name')
+          }
+        }.to shellout('projmod -K "process.something=(privileged,1234,signal=TERM)" project_name')
 
-      expect {
-        converge_recipe "set_project_as_hash_none", %{
+        expect {
+          converge_recipe "set_project_as_hash_none", %{
             resource_control_project 'project_name' do
               process_limits "something" => { :value => 1234, 'signal' => "KILL" }
             end
-        }
-      }.to shellout('projmod -K "process.something=(privileged,1234,signal=KILL)" project_name')
-    end
+          }
+        }.to shellout('projmod -K "process.something=(privileged,1234,signal=KILL)" project_name')
+      end
 
-    it "can set privilege level" do
-      expect {
-        converge_recipe "set_project_as_hash_level", %{
+      it "can set privilege level" do
+        expect {
+          converge_recipe "set_project_as_hash_level", %{
             resource_control_project 'project_name' do
               process_limits "something" => { :value => 1234, :level => "basic" }
             end
-        }
-      }.to shellout('projmod -K "process.something=(basic,1234,none)" project_name')
+          }
+        }.to shellout('projmod -K "process.something=(basic,1234,none)" project_name')
 
-      expect {
-        converge_recipe "set_project_as_hash_level_string", %{
+        expect {
+          converge_recipe "set_project_as_hash_level_string", %{
             resource_control_project 'project_name' do
               process_limits "something" => { :value => 4567, 'level' => "basic" }
             end
-        }
-      }.to shellout('projmod -K "process.something=(basic,4567,none)" project_name')
+          }
+        }.to shellout('projmod -K "process.something=(basic,4567,none)" project_name')
 
+      end
     end
-  end
 
-  context 'with limit as an array of hashes' do
-    it "combines hash values" do
-      expect {
-        converge_recipe "set_project_as_hash_none", %{
+    context 'with limit as an array of hashes' do
+      it "combines hash values" do
+        expect {
+          converge_recipe "set_project_as_hash_none", %{
             resource_control_project 'project_name' do
               process_limits "something" => [
                       { :value => 1234, :signal => "TERM" },
                       { :value => 4567, :deny => true }
                   ]
             end
+          }
+        }.to shellout('projmod -K "process.something=(privileged,1234,signal=TERM),(privileged,4567,deny)" project_name')
+      end
+    end
+  end
+
+  context 'when limits are already set' do
+    project_has_limits(%w(project.cpu-cap task.max-lwps))
+
+    it "can remove those limits" do
+      expect {
+        converge_recipe "set_project_as_hash_none", %{
+            resource_control_project 'project_name' do
+            end
         }
-      }.to shellout('projmod -K "process.something=(privileged,1234,signal=TERM),(privileged,4567,deny)" project_name')
+      }.to shellout('projmod -r -K "project.cpu-cap" -K "task.max-lwps" project_name')
     end
   end
 end
