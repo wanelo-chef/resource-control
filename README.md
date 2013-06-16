@@ -1,6 +1,8 @@
 Resource Control
 ================
 
+[![Build Status](https://travis-ci.org/wanelo-chef/resource-control.png?branch=master)](https://travis-ci.org/wanelo-chef/resource-control)
+
 Resource Control is a chef cookbook for managing Solaris projects, tasks and resource
 limits using the Resource Control Facility.
 
