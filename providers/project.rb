@@ -46,7 +46,7 @@ def project
 end
 
 def project_exists?
-  cmd = Mixlib::ShellOut.new("grep #{project} /etc/project")
+  cmd = Mixlib::ShellOut.new("projects -l #{project}")
   cmd.run_command
   begin
     cmd.error!

@@ -32,7 +32,6 @@ end
 
 describe 'resource-control::project', 'name' do
   before do
-    double_cmd('projects -l project_name')
     double_cmd('projadd')
     double_cmd('projmod')
   end
@@ -64,7 +63,6 @@ end
 
 describe 'resource-control::project', 'comments' do
   before do
-    double_cmd('projects -l project_name')
     double_cmd('projadd')
     double_cmd('projmod')
   end
@@ -107,10 +105,6 @@ describe 'resource-control::project', 'process limits' do
   project_exists('project_name')
 
   context 'when limits are not already set' do
-    before do
-      double_cmd('projects -l project_name')
-    end
-
     context 'with limit as a value' do
       it 'sets value with action none' do
         expect {

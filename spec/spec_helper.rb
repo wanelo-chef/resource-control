@@ -1,6 +1,6 @@
 require 'bundler/setup'
 require 'chefspec'
-require 'aruba-doubles'
+require 'aruba/rspec'
 require 'pry'
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f unless /_spec\.rb$/.match(f) }
@@ -12,12 +12,11 @@ RSpec.configure do |c|
 
   c.before :each do
     setup_chef
-    ArubaDoubles::Double.setup
+    Aruba::RSpec.setup
   end
 
   c.after :each do
-    ArubaDoubles::Double.teardown
-    history.clear
+    Aruba::RSpec.teardown
     reset_chef
   end
 end
