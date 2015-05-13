@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'resource-control::project', 'validation' do
+RSpec.describe 'resource-control::project', 'validation' do
   before { double_cmd('projects -l project_name') }
 
   it 'does not allow spaces in name' do
